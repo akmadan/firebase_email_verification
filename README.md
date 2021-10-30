@@ -1,4 +1,6 @@
-# firebase_features
+# firebase_features 
+
+## Firebase Email-Password Link Verification
 
 The repository contains the Flutter code of how to verify a user using Email Verification Link. 
 
