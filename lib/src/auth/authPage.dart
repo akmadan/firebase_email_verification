@@ -10,7 +10,7 @@ class AuthPage extends StatefulWidget {
 
 class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
   ////// Initial Values //////
-  String? _email;
+  String _email = '';
   String? _link;
   // final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -22,21 +22,19 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
   ///   Resources - https://medium.com/@ayushsahu_52982/passwordless-login-with-firebase-flutter-f0819209677 ///
   ///// Action Code Settings /////
 
-  var acs = ActionCodeSettings(
+  sendLinkToEmail() async {
+    var acs = ActionCodeSettings(
       //Link Created on Dynamic Link in Firebase
-      url: 'https://firebasefeaturesapp.page.link/firebasefeature',
+      url: 'https://firebasefeaturesapp.page.link/firebasefeature/?email=hello',
       // This must be true
       handleCodeInApp: true,
       iOSBundleId: 'com.example.firebaseFeatures',
       androidPackageName: 'com.example.firebase_features',
-      // installIfNotAvailable
       androidInstallApp: true,
-      // minimumVersion
-      androidMinimumVersion: '12');
-
-  sendLinkToEmail() async {
+      androidMinimumVersion: '12',
+    );
     FirebaseAuth.instance
-        .sendSignInLinkToEmail(email: _email!, actionCodeSettings: acs)
+        .sendSignInLinkToEmail(email: _email, actionCodeSettings: acs)
         .catchError(
             (onError) => print('Error sending email verification $onError'))
         .then((value) => print('Successfully sent email verification'));
@@ -45,28 +43,57 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _retrieveDynamicLink();
+      initDynamicLinks();
     }
   }
 
-  _retrieveDynamicLink() async {
+  // _retrieveDynamicLink() async {
+  //   final PendingDynamicLinkData? data =
+  //       await FirebaseDynamicLinks.instance.onLink();
+
+  //   final Uri? deepLink = data?.link;
+  //   print(data);
+  //   print(deepLink.toString());
+  //   _link = deepLink.toString();
+  //   _signInWithEmailAndLink();
+
+  //   return deepLink.toString();
+  // }
+
+  initDynamicLinks() async {
+    FirebaseDynamicLinks.instance.onLink(
+        onSuccess: (PendingDynamicLinkData? dynamicLink) async {
+      final Uri? deepLink = dynamicLink?.link;
+
+      if (deepLink != null) {
+        print(deepLink);
+        print(deepLink.queryParametersAll);
+        print(deepLink);
+        // _signInWithEmailAndLink();
+      }
+    }, onError: (OnLinkErrorException e) async {
+      print('onLinkError');
+      print(e.message);
+    });
+
     final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
-
     final Uri? deepLink = data?.link;
-    print(deepLink.toString());
-    _link = deepLink.toString();
-    _signInWithEmailAndLink();
 
-    return deepLink.toString();
+    if (deepLink != null) {
+      print(deepLink);
+      print(deepLink.data);
+      // _signInWithEmailAndLink();
+    }
   }
 
-  Future<void> _signInWithEmailAndLink() async {
+  Future<void> _signInWithEmailAndLink(String email, String link) async {
     final FirebaseAuth user = FirebaseAuth.instance;
     bool validLink = await user.isSignInWithEmailLink(_link!);
     if (validLink) {
       try {
-        await user.signInWithEmailLink(email: _email!, emailLink: _link!);
+        await user.signInWithEmailLink(email: _email, emailLink: _link!);
+        print('Done');
       } catch (e) {
         print(e);
         // _showDialog(e.toString());
@@ -134,6 +161,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
                   child: Text('Login'),
                   onPressed: () {
                     _formKey.currentState!.save();
+                    print(_email);
                     sendLinkToEmail();
                   },
                 ),
