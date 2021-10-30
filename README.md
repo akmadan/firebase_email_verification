@@ -1,16 +1,20 @@
 # firebase_features
 
-A new Flutter project.
+The repository contains the Flutter code of how to verify a user using Email Verification Link. 
 
-## Getting Started
+### Connect your Flutter App with Firebase
+### Initialize the Email/Pass Authentication Method in Authentication Section of Firebase Dashboard
 
-This project is a starting point for a Flutter application.
+### Add the Following Packages in pubspec.yaml dependencies
+1. firebase_core:
+2. firebase_auth:
 
-A few resources to get you started if this is your first Flutter project:
+### Design a Simple Auth Form for User.
+Check lib/src/auth/authPage.dart
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+### If the user clicks on SignUp then direct the user to verify.dart
+In this page, a verification link will be sent to entered email in the initState only and using Timer(), the state of app will listen to the verification running in the background. As soon as the user clicks on the link sent on email , the app state will be updated and user will be directed to home.dart
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+
+
