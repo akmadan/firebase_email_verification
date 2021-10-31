@@ -15,6 +15,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
   // final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
+  String shareLink = '';
 
   ////// Initial Values //////
   ///// Action Code Settings /////
@@ -22,19 +23,46 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
   ///   Resources - https://medium.com/@ayushsahu_52982/passwordless-login-with-firebase-flutter-f0819209677 ///
   ///// Action Code Settings /////
 
-  sendLinkToEmail() async {
-    var acs = ActionCodeSettings(
-      //Link Created on Dynamic Link in Firebase
-      url: 'https://firebasefeaturesapp.page.link/firebasefeature/?email=hello',
-      // This must be true
-      handleCodeInApp: true,
-      iOSBundleId: 'com.example.firebaseFeatures',
+///////////////// Dynamic Links ////////////////
+  // Future<String> createDynamicLinks() async {
+  //   final DynamicLinkParameters parameters = DynamicLinkParameters(
+  //       uriPrefix: 'https://firebasefeatureapp.page.link',
+  //       link: Uri.parse('https://firebasefeatureapp.page.link/?email=hello'),
+  //       androidParameters: AndroidParameters(
+  //         packageName: 'com.example.firebase_features',
+  //       ),
+  //       dynamicLinkParametersOptions: DynamicLinkParametersOptions(
+  //         shortDynamicLinkPathLength: ShortDynamicLinkPathLength.short,
+  //       ),
+  //       iosParameters: IosParameters(
+  //         bundleId: 'com.example.firebaseFeatures',
+  //       ),
+  //       socialMetaTagParameters:
+  //           SocialMetaTagParameters(title: 'Email', description: _email));
+
+  //   // Uri url;
+
+  //   final Uri shortLink = await parameters.buildUrl();
+  //   // url = shortLink.shortUrl;
+  //   return shortLink.toString();
+  // }
+
+  ///////////////// Dynamic Links ////////////////
+  sendLinkToEmail(String url) async {
+    var actionCodeSettings = ActionCodeSettings(
+      url: 'https://firebasefeatureapp.page.link/?email=hello',
+      dynamicLinkDomain: 'firebasefeatureapp.page.link',
       androidPackageName: 'com.example.firebase_features',
       androidInstallApp: true,
       androidMinimumVersion: '12',
+      iOSBundleId: 'com.example.firebaseFeatures',
+      handleCodeInApp: true,
     );
     FirebaseAuth.instance
-        .sendSignInLinkToEmail(email: _email, actionCodeSettings: acs)
+        .sendSignInLinkToEmail(
+          email: _email,
+          actionCodeSettings: actionCodeSettings,
+        )
         .catchError(
             (onError) => print('Error sending email verification $onError'))
         .then((value) => print('Successfully sent email verification'));
@@ -66,10 +94,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
       final Uri? deepLink = dynamicLink?.link;
 
       if (deepLink != null) {
-        print(deepLink);
-        print(deepLink.queryParametersAll);
-        print(deepLink);
-        // _signInWithEmailAndLink();
+        _signInWithEmailAndLink(_email, deepLink.toString());
       }
     }, onError: (OnLinkErrorException e) async {
       print('onLinkError');
@@ -81,23 +106,23 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
     final Uri? deepLink = data?.link;
 
     if (deepLink != null) {
-      print(deepLink);
-      print(deepLink.data);
-      // _signInWithEmailAndLink();
+      _signInWithEmailAndLink(_email, deepLink.toString());
     }
   }
 
   Future<void> _signInWithEmailAndLink(String email, String link) async {
-    final FirebaseAuth user = FirebaseAuth.instance;
-    bool validLink = await user.isSignInWithEmailLink(_link!);
-    if (validLink) {
-      try {
-        await user.signInWithEmailLink(email: _email, emailLink: _link!);
-        print('Done');
-      } catch (e) {
-        print(e);
-        // _showDialog(e.toString());
-      }
+    var auth = FirebaseAuth.instance;
+// Retrieve the email from wherever you stored it
+    var emailAuth = _email;
+// Confirm the link is a sign-in with email link.
+    if (auth.isSignInWithEmailLink(link)) {
+      // The client SDK will parse the code from the link for you.
+      auth.signInWithEmailLink(email: emailAuth, emailLink: link).then((value) {
+        var userEmail = value.user;
+        print('Successfully signed in with email link!');
+      }).catchError((onError) {
+        print('Error signing in with email link $onError');
+      });
     }
   }
 
@@ -159,10 +184,11 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
                           Theme.of(context).primaryColor)),
                   // color: Theme.of(context).accentColor,
                   child: Text('Login'),
-                  onPressed: () {
+                  onPressed: () async {
                     _formKey.currentState!.save();
                     print(_email);
-                    sendLinkToEmail();
+                    // String url = await createDynamicLinks();
+                    sendLinkToEmail('');
                   },
                 ),
               )
