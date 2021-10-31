@@ -50,7 +50,7 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
   ///////////////// Dynamic Links ////////////////
   sendLinkToEmail(String url) async {
     var actionCodeSettings = ActionCodeSettings(
-      url: 'https://firebasefeatureapp.page.link/?email=hello',
+      url: 'https://firebasefeatureapp.page.link?email=' + _email,
       dynamicLinkDomain: 'firebasefeatureapp.page.link',
       androidPackageName: 'com.example.firebase_features',
       androidInstallApp: true,
@@ -94,7 +94,14 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
       final Uri? deepLink = dynamicLink?.link;
 
       if (deepLink != null) {
-        _signInWithEmailAndLink(_email, deepLink.toString());
+        // bool email = deepLink.queryParametersAll;
+        // Uri uri =
+        //     Uri.parse(deepLink.queryParametersAll['continueUrl'].toString());
+        // String? email = uri.queryParameters['email'];
+        String? url = deepLink.queryParameters['continueUrl'];
+        Uri linkurl = Uri.parse(url!);
+        String? emailvialink = (linkurl.queryParameters['email']);
+        _signInWithEmailAndLink(emailvialink!, deepLink.toString());
       }
     }, onError: (OnLinkErrorException e) async {
       print('onLinkError');
@@ -106,7 +113,10 @@ class _AuthPageState extends State<AuthPage> with WidgetsBindingObserver {
     final Uri? deepLink = data?.link;
 
     if (deepLink != null) {
-      _signInWithEmailAndLink(_email, deepLink.toString());
+      String? url = deepLink.queryParameters['continueUrl'];
+      Uri linkurl = Uri.parse(url!);
+      String? emailvialink = (linkurl.queryParameters['email']);
+      _signInWithEmailAndLink(emailvialink!, deepLink.toString());
     }
   }
 
