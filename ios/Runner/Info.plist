@@ -31,7 +31,7 @@
 
 	<key>FirebaseDynamicLinksCustomDomains</key>
 <array>
-  <string>https://firebasefeaturesapp.page.link/firebasefeature</string>
+  <string>https://firebasefeatureapp.page.link</string>
   
 </array>
 
